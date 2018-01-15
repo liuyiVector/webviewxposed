@@ -256,6 +256,7 @@ public class OptimizedWebViewClient extends WebViewClient{
         try {
             ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file));
             out.writeObject(url_map);
+            out.writeObject(null);
             out.flush();
             out.close();
 //			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
