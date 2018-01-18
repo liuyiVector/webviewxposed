@@ -6,6 +6,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -24,6 +25,7 @@ public class WebViewXposedModule implements IXposedHookLoadPackage{
         XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadData", String.class, String.class, String.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Log.v("liang", "loadData 1");
                 setWebViewClient((WebView) param.thisObject);
             }
 
@@ -36,6 +38,7 @@ public class WebViewXposedModule implements IXposedHookLoadPackage{
         XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadDataWithBaseURL", String.class, String.class, String.class, String.class, String.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Log.v("liang", "loadDataWithBaseURL 2");
                 setWebViewClient((WebView) param.thisObject);
 
             }
@@ -48,6 +51,8 @@ public class WebViewXposedModule implements IXposedHookLoadPackage{
         XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadUrl", String.class,  new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Log.v("liang", "loadUrl 3");
+
                 setWebViewClient((WebView) param.thisObject);
 
             }
@@ -62,12 +67,26 @@ public class WebViewXposedModule implements IXposedHookLoadPackage{
         XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "loadUrl", String.class, Map.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Log.v("liang", "loadUrl 4");
                 setWebViewClient((WebView) param.thisObject);
             }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
+            }
+        });
+
+        XposedHelpers.findAndHookMethod("android.webkit.WebView", loadPackageParam.classLoader, "setWebViewClient", WebViewClient.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                XposedHelpers.setAdditionalInstanceField((WebView) param.thisObject, "pkuWebViewClient", param.args[0]);
+            }
+
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                Log.v("liang", "setWebViewClient 5");
+                setWebViewClient((WebView) param.thisObject);
             }
         });
 
@@ -113,21 +132,31 @@ public class WebViewXposedModule implements IXposedHookLoadPackage{
 		    */
 
         };
-        wv = new OptimizedWebViewClient(wv);
-        webview.setWebViewClient(wv);
-        /*
-        webview.setWebChromeClient(new WebChromeClient() {
-			// Set progress bar during loading
-			public void onProgressChanged(WebView view, int progress) {
-				MainActivity.this.setProgress(progress * 100);
-			}
-		});
-		*/
-        WebSettings websettings = webview.getSettings();
-        websettings.setJavaScriptEnabled(true);
-        websettings.setBuiltInZoomControls(true);
-        websettings.setDomStorageEnabled(false);
-        websettings.setDatabaseEnabled(false);
-        websettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        WebViewClient pre = (WebViewClient) XposedHelpers.getAdditionalInstanceField(webview, "pkuWebViewClient");
+        if(pre == null || !(pre instanceof OptimizedWebViewClient)) {
+            if(pre == null) {
+                wv = new OptimizedWebViewClient(wv);
+                Log.v("liang", "no wvc set");
+            }
+            else {
+                Log.v("liang", "===have set wvc before====");
+                wv = new OptimizedWebViewClient(pre);
+            }
+
+            Log.v("liang", "===try to set the optwvc====");
+            XposedHelpers.setAdditionalInstanceField(webview, "pkuWebViewClient", wv);
+            webview.setWebViewClient(wv);
+            WebSettings websettings = webview.getSettings();
+            websettings.setJavaScriptEnabled(true);
+            websettings.setBuiltInZoomControls(true);
+            websettings.setDomStorageEnabled(false);
+            websettings.setDatabaseEnabled(false);
+            websettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        }else{
+            Log.v("liang", "===have set optwvc before=====");
+        }
+
     }
+
+
 }

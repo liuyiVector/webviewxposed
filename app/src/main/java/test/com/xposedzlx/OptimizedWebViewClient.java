@@ -19,6 +19,7 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import android.graphics.Bitmap;
 import android.net.http.SslError;
@@ -53,7 +54,7 @@ public class OptimizedWebViewClient extends WebViewClient{
                 e.printStackTrace();
             }
         }
-        url_map = new HashMap<String,String>();
+        url_map = new ConcurrentHashMap<>();
         try {
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
             url_map = (HashMap<String,String>)in.readObject();
