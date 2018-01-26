@@ -234,13 +234,15 @@ public class OptimizedWebViewClient extends WebViewClient{
         return res;
     }
 
-    /*
+
     public WebResourceResponse shouldInterceptRequest(WebView view,
             WebResourceRequest request) {
     	Log.d("liang/opt", "shouldInterceptRequest2");
-    	return wvc.shouldInterceptRequest(view, request);
+    	WebResourceResponse res = wvc.shouldInterceptRequest(view, request);
+    	if (res != null) return res;
+        return res;
+
     }
-    */
 
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         Log.d("liang/opt", "override url");
